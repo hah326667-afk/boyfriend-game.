@@ -9,6 +9,7 @@
   html, body { margin: 0; padding: 0; }
   *, *::before, *::after { box-sizing: inherit; }
   button { font-family: inherit; }
+  @keyframes gcShake { 0%,100% { transform: rotate(0) } 25% { transform: rotate(-16deg) } 75% { transform: rotate(16deg) } }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -94,7 +95,6 @@ const themes = {
 };
 /* ===== FIREBASE: DÁN CẤU HÌNH CỦA BẠN VÀO ĐÂY =====
    Firebase Console → Project settings → Your apps → Web app → SDK setup and configuration → Config */
-
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAp_FfqdB6KJk_R_xAVv-APexBaOb6RPkM",
   authDomain: "boyfend-6c20d.firebaseapp.com",
@@ -108,7 +108,7 @@ const FIREBASE_CONFIG = {
 // Các khóa dữ liệu đồng bộ lên Firestore: users/{uid}/data/{khóa}
 const SYNC_KEYS = ["boyfriend_ocs", "boyfriend_player", "boyfriend_theme", "boyfriend_favorites",
   "boyfriend_messages", "boyfriend_dating_history", "boyfriend_transactions",
-  "boyfriend_daily_reward", "boyfriend_inventory", "boyfriend_gifts"];
+  "boyfriend_daily_reward", "boyfriend_inventory", "boyfriend_gifts", "boyfriend_games"];
 const MAX_VALUE_LEN = 500000;
 
 let FB_REASON = "";
@@ -139,7 +139,7 @@ const Cloud = {
     Cloud.uid = null; Cloud.cache = {}; Cloud.rev = {}; Cloud.pending = {}; Cloud.timers = {};
     Cloud.tries = {}; Cloud.conflicts = []; Cloud.error = ""; Cloud.notify();
   },
-  ref(k) { return fbDb.collection("users").doc(Cloud.uid).collection("data").doc(k); },
+ref(k) { return fbDb.collection("users").doc(Cloud.uid).collection("data").doc(k); },
   ts() { return firebase.firestore.FieldValue.serverTimestamp(); },
 
   queue(k, v) {
@@ -643,7 +643,15 @@ function CharacterCreator({
         occupation: e.target.value
       })),
       style: inputStyle
-    })), field("basicInfo", "birthday", "Ngày sinh", false, "DD/MM/YYYY"), field("basicInfo", "nationality", "Quốc tịch"), field("basicInfo", "hometown", "Quê quán"), field("basicInfo", "residence", "Nơi sinh sống"), field("basicInfo", "education", "Học vấn"), field("basicInfo", "languages", "Ngôn ngữ")), section === 1 && /*#__PURE__*/React.createElement(React.Fragment, null, field("appearance", "face", "Khuôn mặt", true), field("appearance", "eyes", "Đôi mắt", true), field("appearance", "hair", "Kiểu tóc và màu tóc", true), field("appearance", "body", "Dáng người", true), field("appearance", "skin", "Màu da"), field("appearance", "style", "Phong cách ăn mặc", true), field("appearance", "distinctiveFeatures", "Đặc điểm nổi bật", true), field("appearance", "accessories", "Phụ kiện và hình xăm", true), field("appearance", "avatarUrl", "Đường dẫn ảnh đại diện"), field("appearance", "coverUrl", "Đường dẫn ảnh bìa")), section === 2 && /*#__PURE__*/React.createElement(React.Fragment, null, field("personalityDetails", "main", "Tính cách chủ đạo", true), field("personalityDetails", "strengths", "Ưu điểm", true), field("personalityDetails", "weaknesses", "Khuyết điểm", true), field("personalityDetails", "habits", "Thói quen", true), field("personalityDetails", "temperament", "Khí chất và tâm trạng", true), field("personalityDetails", "humor", "Khiếu hài hước", true), field("personalityDetails", "fears", "Nỗi sợ và bất an", true), field("personalityDetails", "boundaries", "Giới hạn cá nhân", true)), section === 3 && /*#__PURE__*/React.createElement(React.Fragment, null, field("background", "childhood", "Tuổi thơ", true), field("background", "family", "Gia đình", true), field("background", "past", "Quá khứ", true), field("background", "memories", "Ký ức quan trọng", true), field("background", "secrets", "Bí mật", true), field("background", "ambitions", "Ước mơ và mục tiêu", true), field("background", "currentProblems", "Khó khăn hiện tại", true)), section === 4 && /*#__PURE__*/React.createElement(React.Fragment, null, field("preferences", "foods", "Món ăn yêu thích / ghét", true), field("preferences", "drinks", "Đồ uống", true), field("preferences", "music", "Âm nhạc", true), field("preferences", "movies", "Phim ảnh", true), field("preferences", "games", "Trò chơi", true), field("preferences", "hobbies", "Sở thích", true), field("preferences", "colors", "Màu sắc yêu thích"), field("preferences", "places", "Địa điểm yêu thích", true), field("preferences", "dailyRoutine", "Sinh hoạt hằng ngày", true)), section === 5 && /*#__PURE__*/React.createElement(React.Fragment, null, field("romanticProfile", "idealType", "Mẫu người lý tưởng", true), field("romanticProfile", "loveLanguage", "Ngôn ngữ tình yêu", true), field("romanticProfile", "fallingInLove", "Cách nhân vật yêu", true), field("romanticProfile", "affection", "Cách thể hiện tình cảm", true), field("romanticProfile", "jealousy", "Khi ghen", true), field("romanticProfile", "arguments", "Khi xảy ra tranh cãi", true), field("romanticProfile", "comforting", "Cách an ủi", true), field("romanticProfile", "missingSomeone", "Khi nhớ một người", true), field("romanticProfile", "datePreferences", "Kiểu hẹn hò yêu thích", true), field("romanticProfile", "relationshipExpectations", "Mong đợi trong quan hệ", true)), section === 6 && /*#__PURE__*/React.createElement(React.Fragment, null, field("communicationStyle", "userAddress", "Cách gọi User"), field("communicationStyle", "selfAddress", "Cách xưng hô của OC"), field("communicationStyle", "textingStyle", "Phong cách nhắn tin", true), field("communicationStyle", "emojiUsage", "Cách sử dụng emoji"), field("communicationStyle", "commonExpressions", "Câu nói thường dùng", true), field("communicationStyle", "angryReaction", "Khi tức giận", true), field("communicationStyle", "happyReaction", "Khi vui vẻ", true), field("communicationStyle", "embarrassedReaction", "Khi ngại ngùng", true)), section === 7 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", null, "Các chỉ số này sẽ được sử dụng khi kết nối Gemini API."), slider("initiative", "Mức độ chủ động"), slider("emotionalExpression", "Biểu hiện cảm xúc"), slider("conversationLength", "Độ dài hội thoại"), slider("independence", "Tính độc lập"), slider("memoryImportance", "Mức độ ưu tiên ký ức"), slider("topicConsistency", "Độ bám sát chủ đề"))), /*#__PURE__*/React.createElement("div", {
+    })), field("basicInfo", "birthday", "Ngày sinh", false, "DD/MM/YYYY"), field("basicInfo", "nationality", "Quốc tịch"), field("basicInfo", "hometown", "Quê quán"), field("basicInfo", "residence", "Nơi sinh sống"), field("basicInfo", "education", "Học vấn"), field("basicInfo", "languages", "Ngôn ngữ")), section === 1 && /*#__PURE__*/React.createElement(React.Fragment, null, field("appearance", "face", "Khuôn mặt", true), field("appearance", "eyes", "Đôi mắt", true), field("appearance", 
+"hair", "Kiểu tóc và màu tóc", true), field("appearance", "body", "Dáng người", true), field("appearance", "skin", "Màu da"), field("appearance", "style", "Phong cách ăn mặc", true), field("appearance", "distinctiveFeatures", "Đặc điểm nổi bật", true), field("appearance", "accessories", "Phụ kiện và hình xăm", true), field("appearance", "avatarUrl", "Đường dẫn ảnh đại diện"), field("appearance", "coverUrl", "Đường dẫn ảnh bìa")), section === 2 && /*#__PURE__*/React.createElement(React.Fragment, 
+null, field("personalityDetails", "main", "Tính cách chủ đạo", true), field("personalityDetails", "strengths", "Ưu điểm", true), field("personalityDetails", "weaknesses", "Khuyết điểm", true), field("personalityDetails", "habits", "Thói quen", true), field("personalityDetails", "temperament", "Khí chất và tâm trạng", true), field("personalityDetails", "humor", "Khiếu hài hước", true), field("personalityDetails", "fears", "Nỗi sợ và bất an", true), field("personalityDetails", "boundaries", "Giới 
+hạn cá nhân", true)), section === 3 && /*#__PURE__*/React.createElement(React.Fragment, null, field("background", "childhood", "Tuổi thơ", true), field("background", "family", "Gia đình", true), field("background", "past", "Quá khứ", true), field("background", "memories", "Ký ức quan trọng", true), field("background", "secrets", "Bí mật", true), field("background", "ambitions", "Ước mơ và mục tiêu", true), field("background", "currentProblems", "Khó khăn hiện tại", true)), section === 4 && 
+/*#__PURE__*/React.createElement(React.Fragment, null, field("preferences", "foods", "Món ăn yêu thích / ghét", true), field("preferences", "drinks", "Đồ uống", true), field("preferences", "music", "Âm nhạc", true), field("preferences", "movies", "Phim ảnh", true), field("preferences", "games", "Trò chơi", true), field("preferences", "hobbies", "Sở thích", true), field("preferences", "colors", "Màu sắc yêu thích"), field("preferences", "places", "Địa điểm yêu thích", true), field("preferences", 
+"dailyRoutine", "Sinh hoạt hằng ngày", true)), section === 5 && /*#__PURE__*/React.createElement(React.Fragment, null, field("romanticProfile", "idealType", "Mẫu người lý tưởng", true), field("romanticProfile", "loveLanguage", "Ngôn ngữ tình yêu", true), field("romanticProfile", "fallingInLove", "Cách nhân vật yêu", true), field("romanticProfile", "affection", "Cách thể hiện tình cảm", true), field("romanticProfile", "jealousy", "Khi ghen", true), field("romanticProfile", "arguments", "Khi xảy 
+ra tranh cãi", true), field("romanticProfile", "comforting", "Cách an ủi", true), field("romanticProfile", "missingSomeone", "Khi nhớ một người", true), field("romanticProfile", "datePreferences", "Kiểu hẹn hò yêu thích", true), field("romanticProfile", "relationshipExpectations", "Mong đợi trong quan hệ", true)), section === 6 && /*#__PURE__*/React.createElement(React.Fragment, null, field("communicationStyle", "userAddress", "Cách gọi User"), field("communicationStyle", "selfAddress", "Cách 
+xưng hô của OC"), field("communicationStyle", "textingStyle", "Phong cách nhắn tin", true), field("communicationStyle", "emojiUsage", "Cách sử dụng emoji"), field("communicationStyle", "commonExpressions", "Câu nói thường dùng", true), field("communicationStyle", "angryReaction", "Khi tức giận", true), field("communicationStyle", "happyReaction", "Khi vui vẻ", true), field("communicationStyle", "embarrassedReaction", "Khi ngại ngùng", true)), section === 7 && 
+/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", null, "Các chỉ số này sẽ được sử dụng khi kết nối Gemini API."), slider("initiative", "Mức độ chủ động"), slider("emotionalExpression", "Biểu hiện cảm xúc"), slider("conversationLength", "Độ dài hội thoại"), slider("independence", "Tính độc lập"), slider("memoryImportance", "Mức độ ưu tiên ký ức"), slider("topicConsistency", "Độ bám sát chủ đề"))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
         justifyContent: "space-between",
@@ -775,21 +783,7 @@ function HeThongTinNhan({
       overflow: "hidden",
       color: "#513b49",
       fontFamily: "Arial, sans-serif"
-    }
-  }, /*#__PURE__*/React.createElement("aside", {
-    style: {
-      width: isMobile ? "100%" : 220,
-      flexShrink: 0,
-      overflowY: isMobile ? "hidden" : "auto",
-      overflowX: isMobile ? "auto" : "hidden",
-      background: "#fff",
-      borderRight: isMobile ? "none" : "1px solid #f3dce8",
-      borderBottom: isMobile ? "1px solid #f3dce8" : "none",
-      padding: 12,
-      display: isMobile ? "flex" : "block",
-      gap: isMobile ? 8 : 0,
-      alignItems: isMobile ? "center" : "stretch"
-    }
+}
   }, !isMobile && /*#__PURE__*/React.createElement("h3", null, "💌 Tin nhắn"), characters.map(item => /*#__PURE__*/React.createElement("button", {
     key: item.id,
     onClick: () => setNhanVatDangChon(item.id),
@@ -1453,7 +1447,7 @@ function ViTien({
       background: "linear-gradient(135deg,#f6b5d0,#e98db1)",
       color: "#fff",
       marginBottom: 20
-    }
+}
   }, /*#__PURE__*/React.createElement("p", null, "Số dư hiện tại"), /*#__PURE__*/React.createElement("h1", null, soDu.toLocaleString("vi-VN"), " xu"), /*#__PURE__*/React.createElement("span", null, "Ví tiền BOYFRIEND 💗")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -1923,6 +1917,1304 @@ function Root() {
   }), /*#__PURE__*/React.createElement(SyncBanner, null));
 }
 
+/* ===== GAME CENTER: logic trò chơi (thuần, kiểm thử được) ===== */
+const GC_REWARDS = {            // CẤU HÌNH PHẦN THƯỞNG sau mỗi trận (tính theo kết quả của người chơi)
+  money:     { win: 0, draw: 0, lose: 0 },   // tiền: mặc định 0 = KHÔNG cộng tiền; đặt số xu để bật
+  affection: { win: 2, draw: 2, lose: 1 }    // hảo cảm cộng cho OC cùng chơi
+};
+const GC_DELAY = 700;
+const gcPick = (a) => a[Math.floor(Math.random() * a.length)];
+const gcShuffle = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+
+// ----- Oẳn tù tì -----
+const RPS_BEATS = { keo: "bao", bua: "keo", bao: "bua" }; // khóa thắng giá trị
+const rpsResult = (p, o) => p === o ? "draw" : (RPS_BEATS[p] === o ? "win" : "lose");
+
+// ----- Cờ caro 3x3 (ô: null | "p" | "o") -----
+const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function tttWinner(b) {
+  for (const [x, y, z] of TTT_LINES) if (b[x] && b[x] === b[y] && b[x] === b[z]) return b[x];
+  return b.every(c => c) ? "draw" : null;
+}
+function tttScore(b, who) { // điểm theo góc nhìn OC ("o"), minimax
+  const w = tttWinner(b);
+  if (w === "o") return 1; if (w === "p") return -1; if (w === "draw") return 0;
+  const next = who === "o" ? "p" : "o";
+  const sc = [];
+  b.forEach((c, i) => { if (!c) { const n = b.slice(); n[i] = who; sc.push(tttScore(n, next)); } });
+  return who === "o" ? Math.max(...sc) : Math.min(...sc);
+}
+function tttOcMove(b, skill) { // skill 0..1: xác suất đi nước tốt nhất; còn lại đi ô trống ngẫu nhiên
+  const empty = b.map((c, i) => c ? -1 : i).filter(i => i >= 0);
+  if (!empty.length) return -1;
+  if (Math.random() > skill) return gcPick(empty);
+  let best = -2, moves = [];
+  for (const i of empty) { const n = b.slice(); n[i] = "o"; const s = tttScore(n, "p"); if (s > best) { best = s; moves = [i]; } else if (s === best) moves.push(i); }
+  return gcPick(moves);
+}
+
+// ----- Đoán số: OC chỉ dựa vào khoảng gợi ý công khai (lo..hi), không biết số bí mật -----
+function guessOcMove(lo, hi) {
+  const mid = Math.floor((lo + hi) / 2), span = Math.max(0, Math.floor((hi - lo) / 6));
+  return Math.min(hi, Math.max(lo, mid + Math.floor(Math.random() * (2 * span + 1)) - span));
+}
+
+// ----- Đố vui -----
+const QUIZ_ACC = { "Dễ": 0.85, "Vừa": 0.65, "Khó": 0.45 };  // xác suất OC trả lời đúng
+const QUIZ = {
+  "Kiến thức chung": {
+    "Dễ": [["Một tuần có bao nhiêu ngày?", ["5","6","7","8"], 2], ["Trộn màu xanh dương và vàng được màu gì?", ["Cam","Xanh lá","Tím","Nâu"], 1], ["Con vật nào thường được gọi là \"vua của muôn thú\"?", ["Sư tử","Voi","Gấu","Cá sấu"], 0], ["Một năm thường có bao nhiêu tháng?", ["10","11","12","13"], 2]],
+    "Vừa": [["Quốc khánh Việt Nam là ngày nào?", ["1/5","2/9","30/4","20/11"], 1], ["2 giờ có bao nhiêu phút?", ["90","100","120","150"], 2], ["Đơn vị tiền tệ của Nhật Bản là gì?", ["Won","Yên","Nhân dân tệ","Baht"], 1], ["Số nguyên tố nhỏ nhất là số nào?", ["0","1","2","3"], 2]],
+    "Khó": [["Thế vận hội hiện đại đầu tiên (1896) tổ chức ở thành phố nào?", ["Paris","Athens","London","Roma"], 1], ["Ai là người đầu tiên đặt chân lên Mặt Trăng?", ["Yuri Gagarin","Neil Armstrong","Buzz Aldrin","John Glenn"], 1], ["Số La Mã XLII bằng bao nhiêu?", ["32","42","52","62"], 1], ["Chiến dịch Hồ Chí Minh lịch sử kết thúc vào năm nào?", ["1954","1968","1975","1986"], 2]]
+  },
+  "Địa lý": {
+    "Dễ": [["Thủ đô của Việt Nam là gì?", ["Hà Nội","Huế","Đà Nẵng","Cần Thơ"], 0], ["Đại dương lớn nhất thế giới?", ["Đại Tây Dương","Ấn Độ Dương","Thái Bình Dương","Bắc Băng Dương"], 2], ["Việt Nam nằm ở châu nào?", ["Châu Âu","Châu Á","Châu Phi","Châu Mỹ"], 1], ["Sông nào chảy qua Hà Nội?", ["Sông Hồng","Sông Hương","Sông Hậu","Sông Đà Rằng"], 0]],
+    "Vừa": [["Thủ đô của Nhật Bản là gì?", ["Osaka","Kyoto","Tokyo","Nagoya"], 2], ["Ngọn núi cao nhất Việt Nam?", ["Phan Xi Păng","Bà Đen","Langbiang","Yên Tử"], 0], ["Quốc gia nào có hình dáng giống chiếc ủng?", ["Tây Ban Nha","Ý","Hy Lạp","Bồ Đào Nha"], 1], ["Đảo lớn nhất của Việt Nam là đảo nào?", ["Cát Bà","Phú Quốc","Côn Đảo","Lý Sơn"], 1]],
+    "Khó": [["Thủ đô của Úc là gì?", ["Sydney","Melbourne","Canberra","Perth"], 2], ["Sa mạc lớn nhất châu Phi?", ["Kalahari","Sahara","Gobi","Namib"], 1], ["Eo biển nào ngăn cách châu Á và Bắc Mỹ?", ["Malacca","Bering","Gibraltar","Hormuz"], 1], ["Quốc gia có diện tích lớn nhất thế giới?", ["Canada","Trung Quốc","Nga","Mỹ"], 2]]
+  },
+  "Khoa học": {
+    "Dễ": [["Nước đóng băng ở bao nhiêu độ C (áp suất thường)?", ["0","10","-10","100"], 0], ["Hành tinh nào gần Mặt Trời nhất?", ["Sao Kim","Sao Thủy","Trái Đất","Sao Hỏa"], 1], ["Con người cần hít khí nào để sống?", ["Nitơ","Hydro","Oxy","Heli"], 2], ["Cây xanh quang hợp nhờ ánh sáng của gì?", ["Mặt Trăng","Mặt Trời","Gió","Sao"], 1]],
+    "Vừa": [["Công thức hóa học của nước?", ["CO2","H2O","O2","NaCl"], 1], ["Hành tinh nào nổi tiếng với vành đai?", ["Sao Thổ","Sao Mộc","Sao Hải Vương","Sao Hỏa"], 0], ["Người trưởng thành có khoảng bao nhiêu xương?", ["106","206","306","406"], 1], ["Kim loại nào ở thể lỏng ở nhiệt độ phòng?", ["Sắt","Đồng","Thủy ngân","Nhôm"], 2]],
+    "Khó": [["Ký hiệu hóa học của vàng?", ["Ag","Au","Fe","Gd"], 1], ["Tốc độ ánh sáng xấp xỉ bao nhiêu?", ["300.000 km/s","30.000 km/s","3.000 km/s","3 triệu km/s"], 0], ["Khí chiếm nhiều nhất trong khí quyển Trái Đất?", ["Oxy","Nitơ","CO2","Argon"], 1], ["Đơn vị đo cường độ dòng điện?", ["Vôn","Oát","Ampe","Ôm"], 2]]
+  },
+  "Văn hóa & Giải trí": {
+    "Dễ": [["Món bánh truyền thống ngày Tết miền Bắc?", ["Bánh chưng","Bánh bao","Bánh tráng","Bánh cuốn"], 0], ["Hoạt động nào quen thuộc trong Tết Trung Thu?", ["Rước đèn","Đua thuyền","Té nước","Leo núi"], 0], ["Áo dài là trang phục truyền thống của nước nào?", ["Nhật Bản","Việt Nam","Hàn Quốc","Thái Lan"], 1], ["Nhạc cụ nào có phím trắng và phím đen?", ["Sáo","Piano","Trống","Đàn bầu"], 1]],
+    "Vừa": [["Tác giả của Truyện Kiều là ai?", ["Nguyễn Trãi","Nguyễn Du","Hồ Xuân Hương","Nguyễn Đình Chiểu"], 1], ["Đàn bầu có mấy dây?", ["1","2","3","4"], 0], ["Ai vẽ bức tranh Mona Lisa?", ["Van Gogh","Picasso","Leonardo da Vinci","Monet"], 2], ["Đền Ngọc Sơn nằm trong hồ nào ở Hà Nội?", ["Hồ Tây","Hồ Hoàn Kiếm","Hồ Trúc Bạch","Hồ Bảy Mẫu"], 1]],
+    "Khó": [["Vịnh Hạ Long được UNESCO công nhận Di sản thiên nhiên thế giới lần đầu vào năm nào?", ["1984","1994","2004","2014"], 1], ["Ai là tác giả \"Dế Mèn phiêu lưu ký\"?", ["Nam Cao","Tô Hoài","Ngô Tất Tố","Nguyên Hồng"], 1], ["Ai sáng tác bài \"Tiến quân ca\" (Quốc ca Việt Nam)?", ["Văn Cao","Phạm Tuyên","Trịnh Công Sơn","Hoàng Vân"], 0], ["Vở kịch \"Romeo và Juliet\" của tác giả nào?", ["Charles Dickens","William Shakespeare","Victor Hugo","Mark Twain"], 1]]
+  }
+};
+const QUIZ_TOPICS = Object.keys(QUIZ), QUIZ_LEVELS = ["Dễ", "Vừa", "Khó"];
+function quizBuild(topic, level, n) {
+  const pool = topic === "Tổng hợp" ? QUIZ_TOPICS.reduce((a, t) => a.concat(QUIZ[t][level]), []) : QUIZ[topic][level];
+  return gcShuffle(pool).slice(0, n).map(([q, opts, a]) => {
+    const order = gcShuffle(opts.map((o, i) => i));
+    return { q, opts: order.map(i => opts[i]), a: order.indexOf(a) };
+  });
+}
+function quizOcAnswer(question, level) { // OC trả lời theo xác suất, độc lập với đáp án người chơi
+  if (Math.random() < QUIZ_ACC[level]) return question.a;
+  return gcPick([0, 1, 2, 3].filter(i => i !== question.a));
+}
+
+// ----- Đua xúc xắc -----
+const DICE_N = 30;
+const diceMove = (pos, roll) => Math.min(DICE_N, pos + roll);
+
+// ----- Thật hay thách -----
+const TRUTHS = [{ q: "Món ăn bạn thích nhất là gì?", f: "preferences.foods" }, { q: "Bạn hay nghe thể loại nhạc nào?", f: "preferences.music" }, { q: "Bộ phim bạn có thể xem đi xem lại?", f: "preferences.movies" }, { q: "Trò chơi bạn mê nhất là gì?", f: "preferences.games" }, { q: "Bạn thường làm gì khi rảnh?", f: "preferences.hobbies" }, { q: "Nơi bạn muốn đến nhất là đâu?", f: "preferences.places" }, { q: "Màu sắc bạn thích nhất?", f: "preferences.colors" }, { q: "Đồ uống yêu thích của bạn?", f: "preferences.drinks" }, { q: "Điều gì làm bạn sợ hoặc bất an nhất?", f: "personalityDetails.fears" }, { q: "Ước mơ lớn nhất của bạn là gì?", f: "background.ambitions" }, { q: "Một thói quen nhỏ của bạn mà người khác thấy buồn cười?" }, { q: "Điều vui nhất xảy ra với bạn tuần này?" }, { q: "Nếu có một ngày hoàn toàn rảnh, bạn sẽ làm gì?" }];
+const DARES = ["Kể một câu chuyện cười ngắn.", "Làm một khuôn mặt hài hước trong 5 giây.", "Nói 3 điều bạn thích ở người chơi cùng.", "Hát nhỏ một câu của bài hát bạn thích.", "Nói tên 3 loại trái cây bằng giọng robot.", "Mô tả một ngày hoàn hảo trong đúng 3 câu.", "Làm một động tác nhảy vui nhộn.", "Gửi một lời chúc buổi sáng thật dễ thương.", "Kể về một kỷ niệm đáng yêu nhất của bạn.", "Đố người kia một câu đố vui.", "Tưởng tượng và tả một món quà bất ngờ dành cho người kia."];
+const gcGet = (obj, path) => path.split(".").reduce((o, k) => (o && o[k] != null ? o[k] : ""), obj);
+
+// ----- Tính cách & lời thoại của OC -----
+const GC_TAGS = {
+  kieu: ["ngông", "kiêu", "ngạo", "tự tin", "cứng đầu", "bướng", "nóng"],
+  vui: ["hài", "vui", "năng động", "tinh nghịch", "lém", "nhí nhảnh", "hoạt bát", "lười", "dí dỏm"],
+  tinh: ["điềm tĩnh", "ít nói", "trầm", "lạnh", "kín", "nghiêm", "trưởng thành", "bình tĩnh"],
+  diu: ["dịu", "ấm áp", "quan tâm", "nhẹ nhàng", "hiền", "chu đáo", "ngọt", "dễ thương"]
+};
+function ocStyle(oc) {
+  const d = oc.personalityDetails || {};
+  const text = [oc.personality, d.main, d.temperament, d.humor].join(" ").toLowerCase();
+  let best = "diu", bs = 0;
+  for (const t of ["kieu", "vui", "tinh", "diu"]) {
+    const s = GC_TAGS[t].filter(k => text.includes(k)).length;
+    if (s > bs) { bs = s; best = t; }
+  }
+  return best;
+}
+const GC_LINES = {
+  vui: {
+    start: ["Ê {g}, chơi thì chơi hết mình nha, {x} không nhường đâu!", "Bắt đầu thôi! {x} cá là {x} sẽ thắng đó."],
+    ocWin: ["Hehe, {x} thắng rồi! Đừng buồn nha {g}.", "Thắng nè thắng nè! Ván sau {g} gỡ lại đi."],
+    ocLose: ["Trời ơi, {g} giỏi ghê! {x} thua tâm phục khẩu phục.", "Hừm, thua rồi... đòi đấu lại ngay!"],
+    draw: ["Hòa à? Ngang tài ngang sức luôn ha.", "Hòa nè, coi như hai bên cùng vui."],
+    tease: ["Trêu {x} hả? {x} nhớ mặt {g} rồi đó nha!", "Hứ, {g} cứ chờ xem, tí nữa {x} trả đũa."],
+    praise: ["Hehe, {g} khen làm {x} ngại ghê.", "Biết {x} giỏi rồi mà, nhưng nghe {g} nói vẫn thích."],
+    turn: ["Để {x} xem nào...", "Đến lượt {x} nha, nhìn cho kỹ!"],
+    nice: ["Quá đã! Nước này hay đó.", "Tuyệt, đúng ý {x} luôn!"],
+    oops: ["Ôi, hụt rồi... lần sau nhé.", "Hơi tiếc, nhưng chưa hết đâu!"],
+    skip: ["Bỏ qua cũng được, {x} không ép {g} đâu.", "Ừ, né được thì né, ai mà chẳng có lúc."]
+  },
+  kieu: {
+    start: ["Chơi với {x} á? Chuẩn bị tinh thần thua đi.", "Ván này {x} lấy luôn, {g} cứ thử xem."],
+    ocWin: ["Quá dễ. {g} cần luyện thêm đó.", "Đã bảo mà, {x} đâu có thua."],
+    ocLose: ["Hừ... chỉ là may mắn thôi. Chơi lại!", "Được lắm, lần này {x} nhận. Lần sau thì không."],
+    draw: ["Hòa? Tạm chấp nhận. Chưa phân thắng bại đâu.", "Ngang nhau à... {g} cũng không tệ."],
+    tease: ["Dám trêu {x}? Gan đấy.", "Hứ, cứ cười đi, cuối ván xem ai cười."],
+    praise: ["Biết nhìn người đấy. {x} nhận lời khen này.", "Hừ, ai khen mà {x} chẳng vui... chỉ một chút thôi."],
+    turn: ["Xem {x} ra tay này.", "Chuyện nhỏ, để {x} lo."],
+    nice: ["Thấy chưa, đẳng cấp là đây.", "Đúng như dự tính của {x}."],
+    oops: ["Chỉ là sơ suất. Đừng đắc ý.", "Tính sai một chút thôi, đừng vội mừng."],
+    skip: ["Không dám làm à? Thôi cũng được.", "Bỏ qua? Cũng khôn đấy."]
+  },
+  tinh: {
+    start: ["Bắt đầu đi.", "{x} sẵn sàng. Mong là một ván hay."],
+    ocWin: ["Ván này {x} thắng. {g} đã chơi tốt.", "Kết quả đã rõ. Cảm ơn {g} đã chơi cùng."],
+    ocLose: ["{g} thắng rồi. Chúc mừng.", "Thua một ván cũng không sao. {g} chơi hay lắm."],
+    draw: ["Hòa. Cũng là một kết quả đẹp.", "Không ai hơn ai. Cũng hay."],
+    tease: ["...{g} thích trêu {x} lắm sao.", "Hừm. {x} sẽ nhớ chuyện này."],
+    praise: ["Cảm ơn. {x} thấy vui.", "Lời khen này... {x} xin nhận."],
+    turn: ["Để {x} suy nghĩ chút.", "Đến lượt {x}."],
+    nice: ["Tốt.", "Đúng như {x} nghĩ."],
+    oops: ["Chưa được rồi. Thử lại sau.", "Hơi tiếc."],
+    skip: ["Không sao, {g} cứ chọn cách thoải mái.", "Được, bỏ qua."]
+  },
+  diu: {
+    start: ["Cùng chơi vui nhé, {g}. Thắng hay thua đều được!", "{x} hơi hồi hộp, nhưng chơi với {g} thì vui lắm."],
+    ocWin: ["{x} thắng rồi, may mắn thôi. Cảm ơn {g} đã chơi cùng!", "Vui quá! Nhưng {g} cũng chơi giỏi lắm."],
+    ocLose: ["{g} giỏi quá, chúc mừng nhé!", "Thua rồi, nhưng {x} vẫn rất vui."],
+    draw: ["Hòa rồi, cả hai đều giỏi nhé!", "Hòa cũng vui mà, phải không {g}?"],
+    tease: ["Ơ... {g} trêu {x} hả? Đừng làm {x} đỏ mặt mà.", "Hmm, {g} nghịch ghê đó."],
+    praise: ["Cảm ơn {g} nhiều, {x} vui lắm.", "{g} khen vậy {x} ngại quá."],
+    turn: ["Để {x} thử xem nhé.", "Đến lượt {x} rồi, hồi hộp ghê."],
+    nice: ["Yay, được rồi!", "Tuyệt quá, đúng rồi!"],
+    oops: ["Ôi, chưa đúng rồi. Không sao đâu.", "Tiếc quá, thử lại nhé."],
+    skip: ["Không sao đâu, {g} thoải mái nhé.", "Bỏ qua cũng được mà."]
+  }
+};
+function ocFill(oc, s) {
+  const cs = oc.communicationStyle || {};
+  const x = (cs.selfAddress || "mình").toLowerCase(), g = (cs.userAddress || "bạn").toLowerCase();
+  s = s.replace(/\{x\}/g, x).replace(/\{g\}/g, g);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function ocLine(oc, ev) {
+  const tag = ocStyle(oc), cs = oc.communicationStyle || {}, aff = oc.affection || 0;
+  let s = ocFill(oc, gcPick((GC_LINES[tag] || GC_LINES.diu)[ev] || ["..."]));
+  if (aff >= 100 && Math.random() < 0.5) s += " " + gcPick(["💗", "(cười)", ocFill(oc, "chơi với {g} vui thật.")]);
+  const ex = (cs.commonExpressions || "").split(/[\n,;]+/).map(t => t.trim()).filter(t => t.length > 1 && t.length <= 40);
+  if (ex.length && Math.random() < 0.25) s += " " + gcPick(ex);
+  return s;
+}
+const ocTier = (oc) => (oc.affection || 0) >= 100 ? "Thân thiết" : (oc.affection || 0) >= 30 ? "Quen biết" : "Mới quen";
+
+const {
+  useRef
+} = React;
+const GC = {
+  text: "#593d4c",
+  pink: "#e98db1",
+  soft: "#ffe5ef",
+  line: "#f0cada"
+};
+const gcBtn = extra => ({
+  border: "none",
+  borderRadius: 12,
+  padding: "11px 16px",
+  background: GC.pink,
+  color: "#fff",
+  fontWeight: 600,
+  cursor: "pointer",
+  fontSize: 14,
+  ...extra
+});
+const gcSoft = extra => gcBtn({
+  background: "#f7e4ed",
+  color: "#79465d",
+  ...extra
+});
+const gcSleep = ms => new Promise(r => setTimeout(r, ms));
+const gcAvatar = (a, size) => a && /^(https?:|data:image)/.test(a) ? /*#__PURE__*/React.createElement("img", {
+  src: a,
+  alt: "",
+  style: {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    objectFit: "cover"
+  }
+}) : /*#__PURE__*/React.createElement("span", {
+  style: {
+    fontSize: size * 0.9
+  }
+}, a || "🌸");
+
+/* ---------- A. Oẳn tù tì ---------- */
+const RPS_OPT = [["keo", "✌️", "Kéo"], ["bua", "✊", "Búa"], ["bao", "✋", "Bao"]];
+function RPSGame({
+  oc,
+  say,
+  finish
+}) {
+  const [round, setRound] = useState(1);
+  const [score, setScore] = useState({
+    w: 0,
+    l: 0,
+    d: 0
+  });
+  const [ocPick, setOcPick] = useState(() => gcPick(["keo", "bua", "bao"])); // OC chọn trước, giấu kín
+  const [mine, setMine] = useState(null);
+  const [last, setLast] = useState(null);
+  const [over, setOver] = useState(false);
+  const play = k => {
+    if (mine || over) return;
+    setMine(k);
+    const r = rpsResult(k, ocPick);
+    const sc = {
+      w: score.w + (r === "win" ? 1 : 0),
+      l: score.l + (r === "lose" ? 1 : 0),
+      d: score.d + (r === "draw" ? 1 : 0)
+    };
+    setLast(r);
+    setScore(sc);
+    say(r === "win" ? "ocLose" : r === "lose" ? "ocWin" : "draw");
+    if (sc.w >= 2 || sc.l >= 2 || round >= 3) {
+      setOver(true);
+      finish(sc.w > sc.l ? "win" : sc.l > sc.w ? "lose" : "draw", "Tỉ số " + sc.w + "-" + sc.l + " (hòa " + sc.d + ")");
+    }
+  };
+  const next = () => {
+    setRound(r => r + 1);
+    setMine(null);
+    setLast(null);
+    setOcPick(gcPick(["keo", "bua", "bao"]));
+  };
+  const show = k => RPS_OPT.find(o => o[0] === k);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", null, "Ván ", Math.min(round, 3), "/3 · Bạn ", score.w, " - ", score.l, " ", oc.name, " · Hòa ", score.d), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center",
+      gap: 18,
+      fontSize: 52,
+      margin: "10px 0"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, mine ? show(mine)[1] : "❓", /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12
+    }
+  }, "Bạn")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      alignSelf: "center"
+    }
+  }, "VS"), /*#__PURE__*/React.createElement("div", null, mine ? show(ocPick)[1] : "🤔", /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12
+    }
+  }, oc.name))), last && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, last === "win" ? "Bạn thắng ván này!" : last === "lose" ? oc.name + " thắng ván này!" : "Ván này hòa!")), !mine && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center",
+      gap: 10,
+      flexWrap: "wrap"
+    }
+  }, RPS_OPT.map(o => /*#__PURE__*/React.createElement("button", {
+    key: o[0],
+    style: gcBtn({
+      fontSize: 18,
+      padding: "14px 18px"
+    }),
+    onClick: () => play(o[0])
+  }, o[1], " ", o[2]))), mine && !over && /*#__PURE__*/React.createElement("button", {
+    style: gcBtn(),
+    onClick: next
+  }, "Ván tiếp theo →"));
+}
+
+/* ---------- B. Cờ caro 3x3 ---------- */
+function TTTGame({
+  oc,
+  say,
+  finish
+}) {
+  const [b, setB] = useState(Array(9).fill(null));
+  const [turn, setTurn] = useState("p");
+  const [res, setRes] = useState(null);
+  const skill = ocStyle(oc) === "tinh" ? 0.95 : ocStyle(oc) === "kieu" ? 0.85 : 0.7;
+  const apply = (nb, who) => {
+    setB(nb);
+    const w = tttWinner(nb);
+    if (w) {
+      setRes(w);
+      finish(w === "p" ? "win" : w === "o" ? "lose" : "draw", w === "draw" ? "Bàn cờ đầy" : "Có 3 ô liên tiếp");
+    } else setTurn(who === "p" ? "o" : "p");
+  };
+  const click = i => {
+    if (turn !== "p" || res || b[i]) return;
+    const nb = b.slice();
+    nb[i] = "p";
+    apply(nb, "p");
+  };
+  useEffect(() => {
+    if (turn !== "o" || res) return;
+    say("turn");
+    const t = setTimeout(() => {
+      const i = tttOcMove(b, skill);
+      if (i < 0 || b[i]) return;
+      const nb = b.slice();
+      nb[i] = "o";
+      apply(nb, "o");
+    }, GC_DELAY);
+    return () => clearTimeout(t);
+  }, [turn]);
+  const mark = c => c === "p" ? "❌" : c === "o" ? "⭕" : "";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", null, "Bạn là ❌ · ", oc.name, " là ⭕ · ", res ? res === "draw" ? "Hòa!" : res === "p" ? "Bạn thắng!" : oc.name + " thắng!" : turn === "p" ? "Đến lượt bạn" : oc.name + " đang nghĩ..."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(3,1fr)",
+      gap: 8,
+      maxWidth: 300,
+      margin: "0 auto"
+    }
+  }, b.map((c, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => click(i),
+    style: {
+      aspectRatio: "1/1",
+      fontSize: 36,
+      border: "1px solid " + GC.line,
+      borderRadius: 14,
+      background: c ? GC.soft : "#fff",
+      cursor: c || res || turn !== "p" ? "default" : "pointer"
+    }
+  }, mark(c)))));
+}
+
+/* ---------- C. Đoán số ---------- */
+function GuessGame({
+  oc,
+  say,
+  finish
+}) {
+  const secret = useRef(1 + Math.floor(Math.random() * 100));
+  const [lo, setLo] = useState(1),
+    [hi, setHi] = useState(100);
+  const [turn, setTurn] = useState("p");
+  const [log, setLog] = useState([]);
+  const [cnt, setCnt] = useState({
+    p: 0,
+    o: 0
+  });
+  const [input, setInput] = useState("");
+  const [msg, setMsg] = useState("");
+  const [res, setRes] = useState(null);
+  const doGuess = (who, g) => {
+    const c = {
+      ...cnt,
+      [who]: cnt[who] + 1
+    };
+    setCnt(c);
+    const name = who === "p" ? "Bạn" : oc.name;
+    if (g === secret.current) {
+      setLog(l => [...l, name + " đoán " + g + " → ĐÚNG! 🎉"]);
+      setRes(who);
+      finish(who === "p" ? "win" : "lose", "Số bí mật " + g + " · Bạn " + c.p + " lượt, " + oc.name + " " + c.o + " lượt");
+      return;
+    }
+    const bigger = g < secret.current;
+    setLog(l => [...l, name + " đoán " + g + " → số bí mật " + (bigger ? "LỚN hơn" : "NHỎ hơn")]);
+    if (bigger) setLo(Math.max(lo, g + 1));else setHi(Math.min(hi, g - 1));
+    if (who === "o") say(bigger || !bigger ? "turn" : "turn");
+    setTurn(who === "p" ? "o" : "p");
+  };
+  const submit = e => {
+    e.preventDefault();
+    const g = Number(input);
+    if (!Number.isInteger(g) || g < 1 || g > 100) {
+      setMsg("Hãy nhập số nguyên từ 1 đến 100.");
+      return;
+    }
+    setMsg("");
+    setInput("");
+    doGuess("p", g);
+  };
+  useEffect(() => {
+    if (turn !== "o" || res) return;
+    const t = setTimeout(() => doGuess("o", guessOcMove(lo, hi)), GC_DELAY + 300);
+    return () => clearTimeout(t);
+  }, [turn]);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, "Đoán số bí mật từ ", /*#__PURE__*/React.createElement("b", null, "1"), " đến ", /*#__PURE__*/React.createElement("b", null, "100"), ". Khoảng gợi ý hiện tại: ", /*#__PURE__*/React.createElement("b", null, lo, "–", hi)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, "Lượt đoán: Bạn ", cnt.p, " · ", oc.name, " ", cnt.o), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 170,
+      overflowY: "auto",
+      background: "#fff",
+      borderRadius: 12,
+      padding: 10,
+      marginBottom: 10,
+      fontSize: 14
+    }
+  }, log.length === 0 ? "Chưa có lượt đoán nào." : log.map((l, i) => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, l))), !res && turn === "p" && /*#__PURE__*/React.createElement("form", {
+    onSubmit: submit,
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "1",
+    max: "100",
+    value: input,
+    onChange: e => setInput(e.target.value),
+    placeholder: "Nhập số bạn đoán...",
+    style: {
+      flex: 1,
+      minWidth: 0,
+      padding: 12,
+      borderRadius: 10,
+      border: "1px solid " + GC.line,
+      fontSize: 16
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "submit",
+    style: gcBtn()
+  }, "Đoán")), !res && turn === "o" && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, oc.name, " đang đoán..."), msg && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#c0436a",
+      fontSize: 13
+    }
+  }, msg), res && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("b", null, res === "p" ? "Bạn đã đoán đúng!" : oc.name + " đã đoán đúng!")));
+}
+
+/* ---------- D. Đố vui ---------- */
+function QuizGame({
+  oc,
+  say,
+  finish
+}) {
+  const [topic, setTopic] = useState("Tổng hợp");
+  const [level, setLevel] = useState("Dễ");
+  const [qs, setQs] = useState(null);
+  const [idx, setIdx] = useState(0);
+  const [sc, setSc] = useState({
+    p: 0,
+    o: 0
+  });
+  const [sel, setSel] = useState(null);
+  const [ocSel, setOcSel] = useState(null);
+  const start = () => {
+    setQs(quizBuild(topic, level, 5));
+    setIdx(0);
+    setSc({
+      p: 0,
+      o: 0
+    });
+    setSel(null);
+    setOcSel(null);
+  };
+  if (!qs) return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Chọn chủ đề"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8
+    }
+  }, ["Tổng hợp", ...QUIZ_TOPICS].map(t => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    onClick: () => setTopic(t),
+    style: t === topic ? gcBtn() : gcSoft()
+  }, t))), /*#__PURE__*/React.createElement("h3", null, "Chọn độ khó"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, QUIZ_LEVELS.map(l => /*#__PURE__*/React.createElement("button", {
+    key: l,
+    onClick: () => setLevel(l),
+    style: l === level ? gcBtn() : gcSoft()
+  }, l))), /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      width: "100%",
+      marginTop: 16
+    }),
+    onClick: start
+  }, "Bắt đầu đố vui"));
+  const q = qs[idx],
+    last = idx === qs.length - 1;
+  const answer = i => {
+    if (sel !== null) return;
+    setSel(i);
+    const oi = quizOcAnswer(q, level);
+    const ns = {
+      p: sc.p + (i === q.a ? 1 : 0),
+      o: sc.o + (oi === q.a ? 1 : 0)
+    };
+    setTimeout(() => {
+      setOcSel(oi);
+      setSc(ns);
+      say(oi === q.a ? "nice" : "oops");
+      if (last) finish(ns.p > ns.o ? "win" : ns.p < ns.o ? "lose" : "draw", topic + " · " + level + " · " + ns.p + "-" + ns.o);
+    }, GC_DELAY);
+  };
+  const done = ocSel !== null;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, "Câu ", idx + 1, "/", qs.length, " · ", topic, " · ", level), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-around",
+      background: "#fff",
+      borderRadius: 12,
+      padding: 10,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, "🙂 Bạn: ", /*#__PURE__*/React.createElement("b", null, sc.p)), /*#__PURE__*/React.createElement("div", null, oc.name, ": ", /*#__PURE__*/React.createElement("b", null, sc.o))), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, q.q)), q.opts.map((o, i) => {
+    const shown = sel !== null && done;
+    const bg = shown ? i === q.a ? "#d6f3e8" : i === sel ? "#ffd0d6" : "#fff" : sel === i ? GC.soft : "#fff";
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => answer(i),
+      style: {
+        display: "block",
+        width: "100%",
+        textAlign: "left",
+        padding: 12,
+        marginBottom: 8,
+        borderRadius: 12,
+        border: "1px solid " + GC.line,
+        background: bg,
+        color: GC.text,
+        cursor: sel === null ? "pointer" : "default",
+        fontSize: 15
+      }
+    }, String.fromCharCode(65 + i), ". ", o, shown && ocSel === i ? "  ← " + oc.name : "", shown && sel === i ? "  ← Bạn" : "");
+  }), sel !== null && !done && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center"
+    }
+  }, oc.name, " đang trả lời..."), done && !last && /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      width: "100%"
+    }),
+    onClick: () => {
+      setIdx(idx + 1);
+      setSel(null);
+      setOcSel(null);
+    }
+  }, "Câu tiếp theo →"));
+}
+
+/* ---------- E. Đua xúc xắc ---------- */
+function DiceGame({
+  oc,
+  say,
+  finish
+}) {
+  const posRef = useRef({
+    p: 0,
+    o: 0
+  });
+  const alive = useRef(true);
+  useEffect(() => () => {
+    alive.current = false;
+  }, []);
+  const [pos, setPos] = useState({
+    p: 0,
+    o: 0
+  });
+  const [turn, setTurn] = useState("p");
+  const [face, setFace] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [over, setOver] = useState(null);
+  const [info, setInfo] = useState("Đổ xúc xắc để bắt đầu!");
+  async function roll(who) {
+    if (busy || over) return;
+    setBusy(true);
+    for (let i = 0; i < 8; i++) {
+      if (!alive.current) return;
+      setFace(1 + Math.floor(Math.random() * 6));
+      await gcSleep(70);
+    }
+    const v = 1 + Math.floor(Math.random() * 6);
+    setFace(v);
+    await gcSleep(250);
+    const target = diceMove(posRef.current[who], v);
+    while (posRef.current[who] < target) {
+      if (!alive.current) return;
+      posRef.current = {
+        ...posRef.current,
+        [who]: posRef.current[who] + 1
+      };
+      setPos(posRef.current);
+      await gcSleep(200);
+    }
+    const name = who === "p" ? "Bạn" : oc.name;
+    setInfo(name + " đổ được " + v + " → ô " + posRef.current[who]);
+    if (who === "o") say(v >= 5 ? "nice" : v <= 2 ? "oops" : "turn");
+    if (posRef.current[who] >= DICE_N) {
+      setOver(who);
+      setBusy(false);
+      finish(who === "p" ? "win" : "lose", name + " về đích trước (ô " + DICE_N + ")");
+      return;
+    }
+    setTurn(who === "p" ? "o" : "p");
+    setBusy(false);
+  }
+  useEffect(() => {
+    if (turn !== "o" || over || busy) return;
+    const t = setTimeout(() => roll("o"), 900);
+    return () => clearTimeout(t);
+  }, [turn, busy, over]);
+  const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  const cells = Array.from({
+    length: DICE_N + 1
+  }, (_, i) => i);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", null, info), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 64,
+      display: "inline-block",
+      animation: busy ? "gcShake .3s infinite" : "none"
+    }
+  }, faces[face - 1]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(11,1fr)",
+      gap: 3,
+      margin: "10px 0",
+      fontSize: 11
+    }
+  }, cells.map(i => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      minHeight: 34,
+      borderRadius: 8,
+      background: i === DICE_N ? "#fff3c4" : i === 0 ? "#e6f4ea" : "#fff",
+      border: "1px solid " + GC.line,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      opacity: .5
+    }
+  }, i === DICE_N ? "🏁" : i), /*#__PURE__*/React.createElement("span", {
+    style: {
+      lineHeight: 1
+    }
+  }, pos.p === i ? "🙂" : "", pos.o === i ? "🅾️" : "")))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12
+    }
+  }, "🙂 = Bạn (ô ", pos.p, ") · 🅾️ = ", oc.name, " (ô ", pos.o, ") · Đích: ô ", DICE_N), !over && /*#__PURE__*/React.createElement("button", {
+    disabled: turn !== "p" || busy,
+    onClick: () => roll("p"),
+    style: gcBtn({
+      opacity: turn !== "p" || busy ? 0.5 : 1
+    })
+  }, turn === "p" ? "🎲 Đổ xúc xắc" : oc.name + " đang đổ..."), over && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, over === "p" ? "Bạn về đích trước!" : oc.name + " về đích trước!")));
+}
+
+/* ---------- F. Thật hay thách ---------- */
+function TruthDareGame({
+  oc,
+  say,
+  finish
+}) {
+  const [turn, setTurn] = useState("p");
+  const [card, setCard] = useState(null);
+  const [turns, setTurns] = useState({
+    p: 0,
+    o: 0
+  });
+  const [skips, setSkips] = useState(0);
+  const [ans, setAns] = useState("");
+  const [ocReply, setOcReply] = useState("");
+  const [ended, setEnded] = useState(false);
+  const draw = kind => kind === "truth" ? {
+    kind,
+    text: gcPick(TRUTHS)
+  } : {
+    kind,
+    text: gcPick(DARES)
+  };
+  const choose = kind => setCard(draw(kind));
+  const ocAnswer = c => {
+    if (c.kind === "truth") {
+      const v = c.text.f ? String(gcGet(oc, c.text.f)).trim() : "";
+      return v ? ocFill(oc, "{x} chọn thật. " + v.split(/\n/)[0].slice(0, 160)) : ocFill(oc, gcPick(["Hmm... để {x} nghĩ đã. Câu này {x} xin giữ lại chút bí mật nhé.", "Câu này khó ghê, {x} trả lời sau được không?"]));
+    }
+    return ocFill(oc, "{x} chọn thách, và {x} sẽ làm: " + c.text.toLowerCase());
+  };
+  const finishPlayer = skipped => {
+    setTurns(t => ({
+      ...t,
+      p: t.p + 1
+    }));
+    if (skipped) {
+      setSkips(s => s + 1);
+      say("skip");
+    } else say("nice");
+    setCard(null);
+    setAns("");
+    setTurn("o");
+  };
+  useEffect(() => {
+    if (turn !== "o" || ended) return;
+    say("turn");
+    const t = setTimeout(() => {
+      const c = draw(gcPick(["truth", "dare"]));
+      setCard({
+        ...c,
+        by: "o"
+      });
+      setOcReply(ocAnswer(c));
+      setTurns(x => ({
+        ...x,
+        o: x.o + 1
+      }));
+    }, GC_DELAY);
+    return () => clearTimeout(t);
+  }, [turn]);
+  const ocDone = () => {
+    setCard(null);
+    setOcReply("");
+    setTurn("p");
+    say("nice");
+  };
+  const end = () => {
+    setEnded(true);
+    finish("draw", "Đã chơi " + (turns.p + turns.o) + " lượt, bỏ qua " + skips + " lần");
+  };
+  const canEnd = turns.p >= 1 && turns.o >= 1 && !card;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", null, "Lượt của bạn: ", turns.p, " · Lượt của ", oc.name, ": ", turns.o, " · Đã bỏ qua: ", skips), ended ? /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "Cảm ơn bạn đã chơi cùng! 💗")) : /*#__PURE__*/React.createElement(React.Fragment, null, turn === "p" && !card && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      padding: "16px 24px"
+    }),
+    onClick: () => choose("truth")
+  }, "💬 Thật"), /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      padding: "16px 24px",
+      background: "#a58ad9"
+    }),
+    onClick: () => choose("dare")
+  }, "🔥 Thách")), turn === "p" && card && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 14,
+      padding: 14,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("b", null, card.kind === "truth" ? "💬 THẬT" : "🔥 THÁCH", ":"), " ", card.kind === "truth" ? card.text.q : card.text, card.kind === "truth" && /*#__PURE__*/React.createElement("textarea", {
+    value: ans,
+    onChange: e => setAns(e.target.value),
+    placeholder: "Trả lời của bạn (không bắt buộc)...",
+    rows: 2,
+    style: {
+      width: "100%",
+      boxSizing: "border-box",
+      marginTop: 8,
+      padding: 10,
+      borderRadius: 10,
+      border: "1px solid " + GC.line,
+      fontSize: 16
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      flex: 1
+    }),
+    onClick: () => finishPlayer(false)
+  }, "Xong ✅"), /*#__PURE__*/React.createElement("button", {
+    style: gcSoft({
+      flex: 1
+    }),
+    onClick: () => finishPlayer(true)
+  }, "Bỏ qua ⏭️"))), turn === "o" && !card && /*#__PURE__*/React.createElement("p", null, oc.name, " đang chọn..."), turn === "o" && card && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 14,
+      padding: 14,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("b", null, card.kind === "truth" ? "💬 THẬT" : "🔥 THÁCH", " (lượt của ", oc.name, "):"), " ", card.kind === "truth" ? card.text.q : card.text, /*#__PURE__*/React.createElement("p", {
+    style: {
+      background: GC.soft,
+      borderRadius: 10,
+      padding: 10
+    }
+  }, ocReply), /*#__PURE__*/React.createElement("button", {
+    style: gcBtn({
+      width: "100%"
+    }),
+    onClick: ocDone
+  }, "Tiếp tục →")), canEnd && turn === "p" && /*#__PURE__*/React.createElement("button", {
+    style: gcSoft({
+      marginTop: 14
+    }),
+    onClick: end
+  }, "Kết thúc trò chơi")));
+}
+const GC_GAMES = [{
+  id: "rps",
+  ten: "Oẳn tù tì",
+  anh: "✌️",
+  mo: "Kéo – Búa – Bao, thắng 2 trên 3 ván. OC tự chọn và giấu kín tới khi công bố.",
+  bg: "linear-gradient(135deg,#ffd6e7,#ffeaf3)",
+  Comp: RPSGame
+}, {
+  id: "ttt",
+  ten: "Cờ caro",
+  anh: "⭕",
+  mo: "Bàn cờ 3x3, thay phiên nhau đánh. Ai có 3 ô liên tiếp trước sẽ thắng.",
+  bg: "linear-gradient(135deg,#e1d6ff,#f3edff)",
+  Comp: TTTGame
+}, {
+  id: "guess",
+  ten: "Đoán số",
+  anh: "🔢",
+  mo: "Đoán số bí mật từ 1 đến 100 theo gợi ý lớn hơn/nhỏ hơn. Ai đoán trúng trước thắng.",
+  bg: "linear-gradient(135deg,#d3ecff,#eaf6ff)",
+  Comp: GuessGame
+}, {
+  id: "quiz",
+  ten: "Đố vui",
+  anh: "🧠",
+  mo: "Nhiều chủ đề, 3 độ khó. Cả hai cùng trả lời, ai nhiều điểm hơn thắng.",
+  bg: "linear-gradient(135deg,#d6f3e8,#eefaf5)",
+  Comp: QuizGame
+}, {
+  id: "dice",
+  ten: "Đua xúc xắc",
+  anh: "🎲",
+  mo: "Thay phiên đổ xúc xắc và tiến về ô đích. Ai tới đích trước sẽ thắng.",
+  bg: "linear-gradient(135deg,#fff0c9,#fff8e4)",
+  Comp: DiceGame
+}, {
+  id: "td",
+  ten: "Thật hay thách",
+  anh: "🔥",
+  mo: "Luân phiên chọn Thật hoặc Thách với câu hỏi, nhiệm vụ vui vẻ. Được quyền bỏ qua.",
+  bg: "linear-gradient(135deg,#ffd9cc,#fff0ea)",
+  Comp: TruthDareGame
+}];
+
+/* ---------- Khung trò chơi: OC, trêu/khen, ghi kết quả ---------- */
+function GameShell({
+  def,
+  oc,
+  onRecord,
+  onExit
+}) {
+  const [round, setRound] = useState(0);
+  const [line, setLine] = useState("");
+  const [res, setRes] = useState(null);
+  const done = useRef(false);
+  const say = ev => setLine(ocLine(oc, ev));
+  useEffect(() => {
+    say("start");
+    setRes(null);
+    done.current = false;
+  }, [round]);
+  const finish = (result, detail) => {
+    if (done.current) return;
+    done.current = true;
+    const rw = onRecord(def.id, result, detail);
+    setRes({
+      result,
+      detail,
+      rw
+    });
+    say(result === "win" ? "ocLose" : result === "lose" ? "ocWin" : "draw");
+  };
+  const Comp = def.Comp;
+  const label = res && (res.result === "win" ? "🎉 Bạn thắng!" : res.result === "lose" ? "😢 Bạn thua" : "🤝 Hòa");
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    style: gcSoft({
+      marginBottom: 12
+    }),
+    onClick: onExit
+  }, "← Về danh sách"), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, def.anh, " ", def.ten), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "flex-start",
+      background: "#fff",
+      borderRadius: 16,
+      padding: 12,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      flexShrink: 0,
+      width: 62
+    }
+  }, gcAvatar(oc.avatar, 44), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: "#a18494"
+    }
+  }, ocTier(oc), " · 💗", oc.affection || 0)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("b", {
+    style: {
+      fontSize: 13
+    }
+  }, oc.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: GC.soft,
+      borderRadius: 12,
+      padding: "8px 12px",
+      marginTop: 4,
+      fontSize: 14,
+      minHeight: 20,
+      overflowWrap: "anywhere"
+    }
+  }, line), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      marginTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: gcSoft({
+      padding: "6px 10px",
+      fontSize: 12
+    }),
+    onClick: () => say("tease")
+  }, "😜 Trêu"), /*#__PURE__*/React.createElement("button", {
+    style: gcSoft({
+      padding: "6px 10px",
+      fontSize: 12
+    }),
+    onClick: () => say("praise")
+  }, "💗 Khen")))), /*#__PURE__*/React.createElement(Comp, {
+    key: round,
+    oc: oc,
+    say: say,
+    finish: finish
+  }), res && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      border: "2px solid " + GC.pink,
+      borderRadius: 16,
+      padding: 14,
+      marginTop: 14,
+      textAlign: "center"
+    }
+}, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 6px"
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13
+    }
+  }, res.detail), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      margin: "6px 0"
+    }
+  }, res.rw.aff > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, "💗 Hảo cảm với ", oc.name, ": +", res.rw.aff, "  "), res.rw.gold > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, "💰 +", res.rw.gold, " xu")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: gcBtn(),
+    onClick: () => setRound(r => r + 1)
+  }, "Chơi lại 🔁"), /*#__PURE__*/React.createElement("button", {
+    style: gcSoft(),
+    onClick: onExit
+  }, "Chọn trò khác"))));
+}
+
+/* ---------- GAME CENTER ---------- */
+const emptyGC = () => ({
+  stats: {
+    total: 0,
+    win: 0,
+    lose: 0,
+    draw: 0
+  },
+  byGame: {},
+  byOC: {},
+  history: []
+});
+function GameCenter({
+  characters,
+  setOcs,
+  setPlayer
+}) {
+  const [tab, setTab] = useState("games");
+  const [ocId, setOcId] = useState(characters[0] && characters[0].id || "");
+  const [game, setGame] = useState(null);
+  const [data, setData] = useState(() => {
+    try {
+      const d = JSON.parse(safeGet("boyfriend_games") || "null");
+      if (d && d.stats) return {
+        ...emptyGC(),
+        ...d
+      };
+    } catch {}
+    return emptyGC();
+  });
+  useEffect(() => {
+    safeSet("boyfriend_games", JSON.stringify(data));
+  }, [data]);
+  useEffect(() => {
+    if (!characters.some(c => c.id === ocId)) {
+      setOcId(characters[0] && characters[0].id || "");
+      setGame(null);
+    }
+  }, [characters]);
+  const oc = characters.find(c => c.id === ocId);
+  const record = (gameId, result, detail) => {
+    const bump = o => ({
+      total: (o?.total || 0) + 1,
+      win: (o?.win || 0) + (result === "win" ? 1 : 0),
+      lose: (o?.lose || 0) + (result === "lose" ? 1 : 0),
+      draw: (o?.draw || 0) + (result === "draw" ? 1 : 0)
+    });
+    const def = GC_GAMES.find(g => g.id === gameId);
+    const entry = {
+      id: makeId(),
+      game: gameId,
+      gameName: def.ten,
+      ocId: oc.id,
+      ocName: oc.name,
+      result,
+      detail,
+      time: new Date().toISOString()
+    };
+    setData(old => ({
+      stats: bump(old.stats),
+      byGame: {
+        ...old.byGame,
+        [gameId]: bump(old.byGame[gameId])
+      },
+      byOC: {
+        ...old.byOC,
+        [oc.id]: {
+          ...bump(old.byOC[oc.id]),
+          name: oc.name
+        }
+      },
+      history: [entry, ...old.history].slice(0, 200)
+    }));
+    const aff = GC_REWARDS.affection[result] || 0,
+      gold = GC_REWARDS.money[result] || 0;
+    if (aff) setOcs(list => list.map(o => o.id === oc.id ? {
+      ...o,
+      affection: (o.affection || 0) + aff
+    } : o));
+    if (gold) setPlayer(p => ({
+      ...p,
+      money: p.money + gold
+    }));
+    return {
+      aff,
+      gold
+    };
+  };
+  const panel = {
+    padding: 20,
+    background: "#fff7fb",
+    borderRadius: 20,
+    color: GC.text,
+    fontFamily: "Arial, sans-serif"
+  };
+  if (!characters.length) return /*#__PURE__*/React.createElement("div", {
+    style: panel
+  }, /*#__PURE__*/React.createElement("h2", null, "🎮 GAME CENTER"), /*#__PURE__*/React.createElement("p", null, "Hãy tạo nhân vật trước để cùng chơi nhé!"));
+  if (game && oc) {
+    const def = GC_GAMES.find(g => g.id === game);
+    return /*#__PURE__*/React.createElement("div", {
+      style: panel
+    }, /*#__PURE__*/React.createElement(GameShell, {
+      key: game + ocId,
+      def: def,
+      oc: oc,
+      onRecord: record,
+      onExit: () => setGame(null)
+    }));
+  }
+  const S = data.stats;
+  const tile = (t, v) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 14,
+      padding: 12,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 700
+    }
+  }, v), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "#a18494"
+    }
+  }, t));
+  const rname = {
+    win: "Thắng",
+    lose: "Thua",
+    draw: "Hòa"
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: panel
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      marginTop: 0
+    }
+  }, "🎮 GAME CENTER"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: tab === "games" ? gcBtn() : gcSoft(),
+    onClick: () => setTab("games")
+  }, "🕹️ Trò chơi"), /*#__PURE__*/React.createElement("button", {
+    style: tab === "stats" ? gcBtn() : gcSoft(),
+    onClick: () => setTab("stats")
+  }, "📊 Thống kê")), tab === "games" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("b", null, "Chọn OC chơi cùng:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8,
+      margin: "8px 0 16px"
+    }
+  }, characters.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.id,
+    onClick: () => setOcId(c.id),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "8px 12px",
+      borderRadius: 14,
+      border: c.id === ocId ? "2px solid " + GC.pink : "1px solid " + GC.line,
+      background: c.id === ocId ? GC.soft : "#fff",
+      color: GC.text,
+      cursor: "pointer"
+    }
+  }, gcAvatar(c.avatar, 22), " ", /*#__PURE__*/React.createElement("span", null, c.name)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+      gap: 14
+    }
+  }, GC_GAMES.map(g => /*#__PURE__*/React.createElement("div", {
+    key: g.id,
+    style: {
+      background: g.bg,
+      borderRadius: 18,
+      padding: 16,
+      boxShadow: "0 3px 15px rgba(160,90,120,.08)",
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 54,
+      textAlign: "center"
+    }
+  }, g.anh), /*#__PURE__*/React.createElement("b", {
+    style: {
+      fontSize: 17
+    }
+  }, g.ten), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      flex: 1
+    }
+  }, g.mo), /*#__PURE__*/React.createElement("button", {
+    style: gcBtn(),
+    onClick: () => setGame(g.id)
+  }, "Bắt đầu ▶"))))), tab === "stats" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))",
+      gap: 10,
+      marginBottom: 16
+    }
+  }, tile("Tổng số trận", S.total), tile("Thắng", S.win), tile("Thua", S.lose), tile("Hòa", S.draw)), /*#__PURE__*/React.createElement("h3", null, "Theo trò chơi"), GC_GAMES.map(g => {
+    const s = data.byGame[g.id] || {};
+    return /*#__PURE__*/React.createElement("p", {
+      key: g.id,
+      style: {
+        margin: "4px 0"
+      }
+    }, g.anh, " ", g.ten, ": ", s.total || 0, " trận · thắng ", s.win || 0, " · thua ", s.lose || 0, " · hòa ", s.draw || 0);
+  }), /*#__PURE__*/React.createElement("h3", null, "Lịch sử với từng OC"), Object.keys(data.byOC).length === 0 ? /*#__PURE__*/React.createElement("p", null, "Chưa có trận nào.") : Object.keys(data.byOC).map(id => {
+    const s = data.byOC[id];
+    const cur = characters.find(c => c.id === id);
+    return /*#__PURE__*/React.createElement("p", {
+      key: id,
+      style: {
+        margin: "4px 0"
+      }
+    }, "💗 ", cur ? cur.name : s.name, ": ", s.total, " trận · thắng ", s.win, " · thua ", s.lose, " · hòa ", s.draw);
+  }), /*#__PURE__*/React.createElement("h3", null, "Các trận gần đây"), data.history.length === 0 ? /*#__PURE__*/React.createElement("p", null, "Chưa có trận nào.") : data.history.slice(0, 20).map(h => /*#__PURE__*/React.createElement("div", {
+    key: h.id,
+    style: {
+      background: "#fff",
+      borderRadius: 12,
+      padding: 10,
+      marginTop: 6,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("b", null, h.gameName), " cùng ", h.ocName, " — ", /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: h.result === "win" ? "#2f8f67" : h.result === "lose" ? "#c0436a" : "#8a7a30"
+    }
+  }, rname[h.result]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#a18494",
+      fontSize: 11
+    }
+  }, h.detail, " · ", new Date(h.time).toLocaleString("vi-VN"))))));
+}
+
 function App({ cloudUser, onLogout }) {
   const [page, setPage] = useState("home");
   const [theme, setTheme] = useState(() => {
@@ -2007,7 +3299,7 @@ function App({ cloudUser, onLogout }) {
     border: "1px solid #ddd",
     fontSize: 16
   };
-  const nav = [["home", "🏠", "Trang chủ"], ["messages", "💌", "Tin nhắn"], ["characters", "👤", "Nhân vật"], ["dating", "🌷", "Hẹn hò"], ["shop", "🛍️", "Cửa hàng"], ["games", "🎮", "Trò chơi"], ["wallet", "💰", "Ví tiền"], ["profile", "🌸", "Cá nhân"], ["settings", "⚙️", "Cài đặt"]];
+  const nav = [["home", "🏠", "Trang chủ"], ["messages", "💌", "Tin nhắn"], ["characters", "👤", "Nhân vật"], ["dating", "🌷", "Hẹn hò"], ["shop", "🛍️", "Cửa hàng"], ["games", "🎮", "Trò chơi"], ["gamecenter", "🏆", "GAME CENTER 🎮"], ["wallet", "💰", "Ví tiền"], ["profile", "🌸", "Cá nhân"], ["settings", "⚙️", "Cài đặt"]];
   const textColor = isDark ? "#f8edf4" : "#493642";
   return /*#__PURE__*/_jsxDEV("div", {
     style: {
@@ -2190,7 +3482,7 @@ function App({ cloudUser, onLogout }) {
           children: [/*#__PURE__*/_jsxDEV("h2", {
             children: "🌷 Địa điểm hẹn hò"
           }, void 0, false), _jsxDEV(HeThongHenHo, { characters: ocs, tien: player.money, onTruTien: (n) => setPlayer(p => ({ ...p, money: Math.max(0, p.money - n) })) }, void 0, false)]
-        }, void 0, true), page === "shop" && /*#__PURE__*/_jsxDEV(_Fragment, {
+        }, void 0, true), page === "gamecenter" && _jsxDEV(GameCenter, { characters: ocs, setOcs: setOcs, setPlayer: setPlayer }, void 0, false), page === "shop" && /*#__PURE__*/_jsxDEV(_Fragment, {
           children: [/*#__PURE__*/_jsxDEV("h2", {
             children: "🛍️ Cửa hàng"
           }, void 0, false), _jsxDEV(CuaHang, { characters: ocs, tien: player.money, onTruTien: (n) => setPlayer(p => ({ ...p, money: Math.max(0, p.money - n) })), duLieuBanDau: player, onLuu: (inv, gifts) => setPlayer(p => ({ ...p, inventory: inv, gifts: gifts })) }, void 0, false)]
